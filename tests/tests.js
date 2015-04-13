@@ -5,7 +5,7 @@
 exports.defineManualTests = function(rootEl, addButton) {
   addButton('Get Info', function() {
     chrome.system.memory.getInfo(function(info) {
-      logger(JSON.stringify(info, null, 4));
+      console.log(JSON.stringify(info, null, 4));
     });
   });
 };
