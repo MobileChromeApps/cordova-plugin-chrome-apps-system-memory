@@ -17,6 +17,10 @@ The total amount of physical memory capacity is available only for Jelly Bean an
 The API reference is [here](https://developer.chrome.com/apps/system_memory).
 
 # Release Notes
+
+## 1.1.1 (April 30, 2015)
+- Renamed plugin to pubilsh to NPM
+
 ## 1.1.0 (October 21, 2014)
 - Added support for iOS
 
