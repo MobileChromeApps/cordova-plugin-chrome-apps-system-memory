@@ -1,6 +1,6 @@
 {
   "name": "cordova-plugin-chrome-apps-system-memory",
-  "version": "1.1.1",
+  "version": "1.1.2-dev",
   "description": "This plugin provides the ability to get physical memory information.",
   "cordova": {
     "id": "cordova-plugin-chrome-apps-system-memory",
