@@ -6,6 +6,8 @@
 #import <Foundation/Foundation.h>
 #import <mach/mach.h>
 #import <mach/mach_host.h>
+@import WebKit;
+@import UIKit;
 
 #if CHROME_SYSTEM_MEMORY_VERBOSE_LOGGING
 #define VERBOSE_LOG NSLog
@@ -21,6 +23,52 @@
 
 @implementation ChromeSystemMemory
 
+ - (void)onMemoryWarning
+{
+	NSString* javascriptString =
+	@"(function() {"
+	"  var ev = document.createEvent('Event');"
+	"  ev.initEvent('lowMemory', true, true);"
+	"  document.dispatchEvent(ev);"
+	"}());";
+
+	// first, try Cordova 4.0+ webViewEngine evaluateJavaScript:completionHandler:
+	if ([self respondsToSelector:@selector(setWebViewEngine:)]) {
+		VERBOSE_LOG(@"Trying webViewEngine...");
+		id engine = self.webViewEngine;
+		if (engine) {
+			[engine evaluateJavaScript:javascriptString completionHandler:^(id result, NSError *error) {
+				if (error != nil) {
+					VERBOSE_LOG(@"ERROR: evaluateJavaScript failed: %@", error.localizedDescription);
+				}
+			}];
+			return;
+		}
+	}
+
+	// if not, fall back to checking WKWebView's evaluateJavaScript:completionHandler:
+	if ([self.webView respondsToSelector:@selector(evaluateJavaScript:completionHandler:)]) {
+		VERBOSE_LOG(@"Trying WKWebView...");
+		[(WKWebView*)self.webView evaluateJavaScript:javascriptString completionHandler:^(id result, NSError *error) {
+			if (error != nil) {
+				VERBOSE_LOG(@"ERROR: sending JavaScript low memory event failed: %@", error.localizedDescription);
+			}
+		}];
+		return;
+	}
+
+	// finally, fall back to UIWebView's stringByEvaluatingJavaScriptFromString:
+	if ([self.webView respondsToSelector:@selector(stringByEvaluatingJavaScriptFromString:)]) {
+		VERBOSE_LOG(@"Trying UIWebView...");
+		NSString* result = [(UIWebView*)self.webView stringByEvaluatingJavaScriptFromString:javascriptString];
+		if (result != nil && result != (id)[NSNull null] && result.length != 0) {
+			VERBOSE_LOG(@"sending JavaScript low memory event returned: $@", result);
+		}
+		return;
+	}
+
+	VERBOSE_LOG(@"Giving up. :(");
+}
 
 - (NSError *)kernelCallError:(NSString *)errMsg
 {
